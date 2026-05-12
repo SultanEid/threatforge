@@ -1,0 +1,26 @@
+{
+  "name": "threatforge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web-based cyber threat modeling workbench with STRIDE analysis",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm install --workspace=client && npm install --workspace=server",
+    "db:migrate": "npm run db:migrate --workspace=server",
+    "db:seed": "npm run db:seed --workspace=server",
+    "dev": "concurrently -n server,client -c yellow,cyan \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "build": "npm run build --workspace=client",
+    "start": "npm run start --workspace=server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
