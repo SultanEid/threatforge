@@ -129,4 +129,11 @@ export const schemaPath = path.join(__dirname, 'schema.sql');
 export function runSchema() {
   const sql = fs.readFileSync(schemaPath, 'utf-8');
   db.exec(sql);
+
+  // Databases created before accounts existed lack projects.user_id.
+  const cols = db.prepare(`PRAGMA table_info(projects)`).all().map((c) => c.name);
+  if (!cols.includes('user_id')) {
+    db.exec(`ALTER TABLE projects ADD COLUMN user_id TEXT REFERENCES users(id) ON DELETE CASCADE`);
+  }
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_projects_user ON projects(user_id)`);
 }

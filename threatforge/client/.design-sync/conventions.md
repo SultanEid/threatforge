@@ -1,34 +1,36 @@
 # ThreatForge conventions
 
-ThreatForge is a dark, monospace "SOC console" UI for STRIDE threat modeling. Everything is exported on `window.ThreatForge`.
+ThreatForge uses the SERG Threat Modeler visual language: dark, terminal-inspired, academic-precise. IBM Plex Sans for UI text, JetBrains Mono for labels, IDs and numbers, mint `--accent` for primary actions. Everything is exported on `window.ThreatForge`.
 
 ## Setup
 
-- No provider is needed for `ThreatCard`, `StrideGrid`, `StatusBar`.
-- The four DFD node components (`ExternalEntityNode`, `ProcessNode`, `DataStoreNode`, `TrustBoundaryNode`) are **React Flow custom nodes**. Never render them standalone. Render a `ReactFlow` (re-exported from this bundle, inside `ReactFlowProvider`) and pass `nodeTypes={nodeTypes}`; node `type` is `'external' | 'process' | 'datastore' | 'boundary'`. The `ReactFlow` parent element must have an explicit width and height.
-- Boundary nodes take `zIndex: -1` and `data.width`/`data.height`; place element nodes inside their area by position.
-- Edges: `type: 'smoothstep'`, `markerEnd: { type: MarkerType.ArrowClosed, color: '#7c8590' }`, `label` = protocol (e.g. `HTTPS`, `gRPC`, `SQL/TLS`).
-- The stylesheet sets `html, body` to `height: 100%`, `overflow: hidden`, `font-size: 12px` and dark background `var(--bg-deep)`. Build full-viewport layouts; put scrollable regions in their own `overflow: auto` container.
+- `ThreatCard` and `StrideGrid` need no provider.
+- The four DFD node components (`ExternalEntityNode`, `ProcessNode`, `DataStoreNode`, `TrustBoundaryNode`) are **React Flow custom nodes**. Never render them standalone. Render a `ReactFlow` (re-exported from this bundle, inside `ReactFlowProvider`) with `nodeTypes={nodeTypes}`; node `type` is `'external' | 'process' | 'datastore' | 'boundary'`. The `ReactFlow` parent must have an explicit width and height.
+- Boundary nodes are sized by the React Flow node's own `width`/`height` and take `zIndex: -1`; place element nodes inside their area by position.
+- Edges: `type: 'smoothstep'`, `markerEnd: { type: MarkerType.ArrowClosed, color: '#7CE3D8' }`, `label` = protocol (e.g. `HTTPS`, `gRPC`, `SQL/TLS`). Put canvases on the `grid-bg` class.
 
 ## Styling idiom: CSS variables + plain classes
 
-Use `var(--*)` tokens in inline styles for layout glue; never hardcode hex values except the edge stroke above.
+Use `var(--*)` tokens for layout glue; never hardcode hex values except the edge marker color above.
 
 | Family | Tokens |
 |---|---|
-| Surfaces (dark → light) | `--bg-deep`, `--bg-base`, `--bg-surface`, `--bg-elevated`, `--bg-overlay` |
-| Borders | `--border`, `--border-strong`, `--border-glow` |
-| Text | `--text-primary`, `--text-secondary`, `--text-tertiary`, `--text-mute` |
-| Accent | `--accent` (amber, primary action), `--accent-soft` (hover fill), `--warm` |
-| Hues | `--cool`, `--green`, `--red`, `--purple`, `--pink` |
-| Severity | `--sev-critical`, `--sev-high`, `--sev-medium`, `--sev-low` |
-| Fonts | `--mono` (JetBrains Mono, all UI text), `--display` (Major Mono Display, brand wordmark only) |
+| Surfaces (dark → light) | `--bg-inset`, `--bg-0`, `--bg-1` (app), `--bg-2` (cards), `--bg-3`, `--bg-4` |
+| Lines | `--line-1` (hairline), `--line-2` (default), `--line-3` (strong) |
+| Text | `--fg-1` (primary) … `--fg-5` (disabled), `--fg-on-accent` |
+| Brand | `--accent`, `--accent-strong`, `--accent-soft`, `--accent-line` |
+| Signal | `--critical`, `--high`, `--medium`, `--low`, `--info`, `--success`, each with a `-bg` variant |
+| STRIDE | `--stride-s`, `--stride-t`, `--stride-r`, `--stride-i`, `--stride-d`, `--stride-e`, each with a `-bg` variant |
+| Fonts | `--font-sans` (IBM Plex Sans), `--font-mono` (JetBrains Mono) |
 
-Native controls are pre-styled. Write plain `<button>`, `<input>`, `<select>`, `<textarea>`. Button variants are classes: `primary` (filled amber), `ghost` (borderless), `icon-btn` (compact × style). Buttons are uppercase with letter-spacing by default.
+Classes:
+- Buttons: `btn` plus `btn--primary` (mint fill), `btn--secondary`, `btn--ghost`, `btn--danger`; modifiers `btn--sm`, `btn--block`. Compact icon button: `icon-btn`.
+- Form controls: `input`, `select`, `textarea` (`input--sm`, `select--sm`); wrap with `field` and a `label` span for the mono caps label.
+- Surfaces: `card` (`card--flush` for tables), `card-head`, `page-header` (an `h1` + `p` subtitle, actions in `page-header__actions`), `page-body`, `kpi-grid`, `split` (2:1 columns).
+- Tables: `tbl__head` / `tbl__row` (set `gridTemplateColumns` inline), `tbl__row--click`, `cell-title`, `cell-sub`, `cell-mono`, `cell-dim`.
+- Threat atoms: `sev-badge sev-badge--critical|high|medium|low`, `stride-pill` (+ `stride-pill__letter`), `stride-chip`, `status-dot` (set `--dot`), `chip` / `chip is-active` for filters, `notice` / `notice--err`.
 
-Panel classes for inspector-style side panels: `panel-section`, `panel-header`, `field-group`, `field`, `field-label`, `field-row`, `inspector-head`, `inspector-tag`, `inspector-title`. Severity pills: `sev-counter critical|high|medium|low`. Legend rows: `legend`, `legend-row`, `legend-dot`.
-
-Domain vocab (use exact values): STRIDE letters `S T R I D E`; severities `Critical High Medium Low`; mitigation `Open Mitigated Accepted`; classifications `Public Internal Confidential Secret`; zones `UNTRUSTED SEMI-TRUSTED TRUSTED RESTRICTED`. These are also exported as `STRIDE`, `SEVERITIES`, `MITIGATIONS`, `CLASSIFICATIONS`, `AUTH_METHODS`.
+Domain vocab (use exact values): STRIDE letters `S T R I D E`; severities `Critical High Medium Low`; status `Open Mitigated Accepted`; classifications `Public Internal Confidential Secret`; zones `UNTRUSTED SEMI-TRUSTED TRUSTED RESTRICTED`. These are exported as `STRIDE`, `SEVERITIES`, `MITIGATIONS`, `CLASSIFICATIONS`, `ZONES`, `AUTH_METHODS`.
 
 ## Where the truth lives
 
@@ -44,10 +46,10 @@ const threats = [
   { id: 't2', stride: 'D', severity: 'High', mitigation: 'Mitigated',
     description: 'Volumetric DDoS on the gateway.', control: 'WAF + rate limiting' },
 ];
-<div className="panel-section" style={{ width: 320, background: 'var(--bg-surface)' }}>
-  <div className="panel-header">Orders DB · Threats</div>
+<div className="card" style={{ width: 340, display: 'grid', gap: 10 }}>
+  <span className="label">Orders DB · STRIDE threats</span>
   <StrideGrid threats={threats} />
-  {threats.map((t) => <ThreatCard key={t.id} threat={t} onToggleMitigation={() => {}} />)}
-  <button className="primary" style={{ width: '100%', marginTop: 8 }}>Add Threat</button>
+  {threats.map((t) => <ThreatCard key={t.id} threat={t} onStatusChange={() => {}} />)}
+  <button className="btn btn--primary btn--block">Add threat</button>
 </div>
 ```

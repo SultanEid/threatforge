@@ -1,35 +1,34 @@
 export const STRIDE = [
-  { key: 'S', name: 'Spoofing',           color: 'var(--red)',    desc: 'Authentication' },
-  { key: 'T', name: 'Tampering',          color: 'var(--warm)',   desc: 'Integrity' },
-  { key: 'R', name: 'Repudiation',        color: 'var(--accent)', desc: 'Non-repudiation' },
-  { key: 'I', name: 'Info Disclosure',    color: 'var(--cool)',   desc: 'Confidentiality' },
-  { key: 'D', name: 'Denial of Service',  color: 'var(--purple)', desc: 'Availability' },
-  { key: 'E', name: 'Elevation of Priv.', color: 'var(--pink)',   desc: 'Authorization' },
+  { key: 'S', name: 'Spoofing',           short: 'Spoofing',           color: 'var(--stride-s)', bg: 'var(--stride-s-bg)', desc: 'Authentication' },
+  { key: 'T', name: 'Tampering',          short: 'Tampering',          color: 'var(--stride-t)', bg: 'var(--stride-t-bg)', desc: 'Integrity' },
+  { key: 'R', name: 'Repudiation',        short: 'Repudiation',        color: 'var(--stride-r)', bg: 'var(--stride-r-bg)', desc: 'Non-repudiation' },
+  { key: 'I', name: 'Info disclosure',    short: 'Info disclosure',    color: 'var(--stride-i)', bg: 'var(--stride-i-bg)', desc: 'Confidentiality' },
+  { key: 'D', name: 'Denial of service',  short: 'Denial of service',  color: 'var(--stride-d)', bg: 'var(--stride-d-bg)', desc: 'Availability' },
+  { key: 'E', name: 'Elev. of privilege', short: 'Elev. of privilege', color: 'var(--stride-e)', bg: 'var(--stride-e-bg)', desc: 'Authorization' },
 ];
 
 export const STRIDE_BY_KEY = Object.fromEntries(STRIDE.map((s) => [s.key, s]));
 
 export const CLASSIFICATIONS = ['Public', 'Internal', 'Confidential', 'Secret'];
 export const SEVERITIES = ['Critical', 'High', 'Medium', 'Low'];
+export const SEV_RANK = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+export const SEV_COLOR = { Critical: 'var(--critical)', High: 'var(--high)', Medium: 'var(--medium)', Low: 'var(--low)' };
 export const MITIGATIONS = ['Open', 'Mitigated', 'Accepted'];
+export const STATUS_COLOR = { Open: 'var(--critical)', Mitigated: 'var(--success)', Accepted: 'var(--fg-4)' };
+export const ZONES = ['UNTRUSTED', 'SEMI-TRUSTED', 'TRUSTED', 'RESTRICTED'];
 
 export const AUTH_METHODS = [
   'None', 'Anonymous', 'API Key', 'OAuth 2.0 / OIDC', 'mTLS', 'Session Cookie', 'SAML',
 ];
 
-export const PALETTE = [
-  { type: 'external',  name: 'External Entity', desc: 'User, partner, or external system outside the trust zone.',  cls: 'palette-item' },
-  { type: 'process',   name: 'Process',         desc: 'Application, service, microservice, or computation.',        cls: 'palette-item palette-item--process' },
-  { type: 'datastore', name: 'Data Store',      desc: 'Database, file system, cache, queue, or any storage.',       cls: 'palette-item palette-item--datastore' },
-  { type: 'boundary',  name: 'Trust Boundary',  desc: 'Group elements; data crossing this edge requires scrutiny.', cls: 'palette-item palette-item--boundary' },
-];
+export const NODE_TYPE_LABEL = { external: 'external', process: 'process', datastore: 'store', boundary: 'boundary' };
 
 export const NODE_DEFAULTS = {
   external:  { label: 'External Entity', classification: 'Public',       technology: '' },
   process:   { label: 'New Process',     classification: 'Internal',     technology: '' },
   datastore: { label: 'New Data Store',  classification: 'Confidential', technology: '' },
-  boundary:  { label: 'New Boundary',    zone: 'TRUSTED', width: 280, height: 200, z_index: -1 },
+  boundary:  { label: 'New Boundary',    zone: 'TRUSTED', width: 320, height: 220, z_index: -1 },
 };
 
 export const classifyColor = (c) =>
-  ({ Public: 'var(--green)', Internal: 'var(--cool)', Confidential: 'var(--warm)', Secret: 'var(--red)' })[c] || 'var(--text-tertiary)';
+  ({ Public: 'var(--success)', Internal: 'var(--info)', Confidential: 'var(--high)', Secret: 'var(--critical)' })[c] || 'var(--fg-4)';

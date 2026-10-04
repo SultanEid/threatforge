@@ -10,9 +10,8 @@ export { default as TrustBoundaryNode } from '../components/nodes/TrustBoundaryN
 export { nodeTypes } from '../components/nodes/index.js';
 export { default as ThreatCard } from '../components/ThreatCard.jsx';
 export { default as StrideGrid } from '../components/StrideGrid.jsx';
-export { default as StatusBar } from '../components/StatusBar.jsx';
 export {
-  STRIDE, STRIDE_BY_KEY, CLASSIFICATIONS, SEVERITIES, MITIGATIONS, AUTH_METHODS, classifyColor,
+  STRIDE, STRIDE_BY_KEY, CLASSIFICATIONS, SEVERITIES, MITIGATIONS, AUTH_METHODS, ZONES, classifyColor,
 } from '../lib/constants.js';
 export {
   ReactFlow, ReactFlowProvider, Background, BackgroundVariant, Controls, MiniMap, MarkerType, Handle, Position,

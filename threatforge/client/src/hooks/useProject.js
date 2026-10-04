@@ -70,6 +70,11 @@ export function useProject(projectId, { onError, onSync } = {}) {
         }
         deb(position);
       }
+      if (change.type === 'dimensions' && change.resizing === false && change.dimensions) {
+        // Boundary resize finished -> persist its size
+        const { width, height } = change.dimensions;
+        sync(() => api.updateNode(change.id, { width, height })).catch(() => {});
+      }
     }
   }, [onNodesChange, sync]);
 
@@ -120,7 +125,7 @@ export function useProject(projectId, { onError, onSync } = {}) {
       id: tempId,
       type: 'smoothstep',
       label: 'data',
-      markerEnd: { type: MarkerType.ArrowClosed, color: '#7c8590' },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#7CE3D8' },
       data: { auth: 'None', payload: '' },
     };
     setEdges((eds) => rfAddEdge(stub, eds));

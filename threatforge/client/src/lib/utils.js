@@ -14,6 +14,11 @@ export function debounce(fn, ms = 300) {
   return wrapped;
 }
 
+// Every threat in the diagram, each tagged with the node it belongs to.
+export function allThreats(nodes) {
+  return nodes.flatMap((n) => (n.data?.threats || []).map((t) => ({ ...t, node: n })));
+}
+
 // Convert a server node row → a React Flow node object.
 export function rowToFlowNode(row) {
   const {
@@ -32,7 +37,7 @@ export function rowToFlowNode(row) {
       zone, width, height,
       threats,
     },
-    ...(type === 'boundary' ? { style: { zIndex: z_index ?? -1 } } : {}),
+    ...(type === 'boundary' ? { width: width ?? 320, height: height ?? 220, zIndex: z_index ?? -1 } : {}),
   };
 }
 
@@ -46,7 +51,7 @@ export function rowToFlowEdge(row) {
     targetHandle: row.target_handle || undefined,
     label: row.label || undefined,
     type: 'smoothstep',
-    markerEnd: { type: 'arrowclosed', color: '#7c8590' },
+    markerEnd: { type: 'arrowclosed', color: '#7CE3D8' },
     data: { payload: row.payload || '', auth: row.auth || 'None' },
   };
 }

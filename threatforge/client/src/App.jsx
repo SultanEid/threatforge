@@ -1,253 +1,161 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import {
-  ReactFlow,
-  Background,
-  BackgroundVariant,
-  Controls,
-  MiniMap,
-  MarkerType,
-  useReactFlow,
-} from '@xyflow/react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { TriangleAlert, Check } from 'lucide-react';
 
-import { api } from './api/client.js';
+import { api, setUnauthorizedHandler } from './api/client.js';
 import { useProject } from './hooks/useProject.js';
-import { nodeTypes } from './components/nodes/index.js';
-import Sidebar from './components/Sidebar.jsx';
 import TopBar from './components/TopBar.jsx';
-import Inspector from './components/Inspector.jsx';
-import StatusBar from './components/StatusBar.jsx';
+import Sidebar from './components/Sidebar.jsx';
+import AuthScreen from './screens/AuthScreen.jsx';
+import OverviewScreen from './screens/OverviewScreen.jsx';
+import ProfileScreen from './screens/ProfileScreen.jsx';
+import DashboardScreen from './screens/DashboardScreen.jsx';
+import DiagramScreen from './screens/DiagramScreen.jsx';
+import ThreatsScreen from './screens/ThreatsScreen.jsx';
+import AssetsScreen from './screens/AssetsScreen.jsx';
+import ReportsScreen from './screens/ReportsScreen.jsx';
+
+const MODEL_VIEWS = ['dashboard', 'diagram', 'threats', 'assets', 'reports'];
+const NAV_KEY = 'tf.nav';
+const NO_SELECTION = { nodeId: null, edgeId: null };
+
+function loadNav() {
+  try { return JSON.parse(localStorage.getItem(NAV_KEY)) || { view: 'overview', projectId: null }; }
+  catch { return { view: 'overview', projectId: null }; }
+}
 
 export default function App() {
+  const [user, setUser] = useState(undefined); // undefined = checking session
   const [projects, setProjects] = useState([]);
-  const [currentProjectId, setCurrentProjectId] = useState(null);
-  const [bootError, setBootError] = useState(null);
-
-  const [syncState, setSyncState] = useState('idle'); // idle | syncing | error
+  const [projectsLoaded, setProjectsLoaded] = useState(false);
+  const [attention, setAttention] = useState([]);
+  const [nav, setNav] = useState(loadNav);
+  const [selection, setSelection] = useState(NO_SELECTION);
+  const [syncState, setSyncState] = useState('idle');
   const [toast, setToast] = useState(null);
-  const [selectedNodeId, setSelectedNodeId] = useState(null);
-  const [selectedEdgeId, setSelectedEdgeId] = useState(null);
-  const [isDragOver, setIsDragOver] = useState(false);
 
-  const rfWrapperRef = useRef(null);
-  const { screenToFlowPosition } = useReactFlow();
-
-  const showToast = useCallback((message, isError = false) => {
-    setToast({ message, isError });
-  }, []);
+  const notify = useCallback((message, isError = false) => setToast({ message, isError }), []);
+  const handleError = useCallback((e) => { console.error(e); notify(e.message || 'Request failed', true); }, [notify]);
 
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2400);
+    const t = setTimeout(() => setToast(null), 2600);
     return () => clearTimeout(t);
   }, [toast]);
 
-  const handleError = useCallback((e) => {
-    console.error(e);
-    showToast(e.message || 'Request failed', true);
-  }, [showToast]);
-
-  // -------------- BOOT: load projects --------------
   useEffect(() => {
-    (async () => {
-      try {
-        const list = await api.listProjects();
-        setProjects(list);
-        if (list.length > 0) setCurrentProjectId(list[0].id);
-      } catch (e) {
-        setBootError(e);
-        handleError(e);
-      }
-    })();
+    try { localStorage.setItem(NAV_KEY, JSON.stringify(nav)); } catch { /* storage unavailable */ }
+  }, [nav]);
+
+  // -------------- SESSION --------------
+  const signedOut = useCallback(() => {
+    setUser(null);
+    setProjects([]);
+    setProjectsLoaded(false);
+    setAttention([]);
+    setSelection(NO_SELECTION);
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(signedOut);
+    api.me().then(setUser, signedOut);
+  }, [signedOut]);
+
+  const refreshProjects = useCallback(async () => {
+    try {
+      const [list, att] = await Promise.all([api.listProjects(), api.attention()]);
+      setProjects(list);
+      setAttention(att);
+    } catch (e) {
+      if (e.status !== 401) handleError(e);
+    } finally {
+      setProjectsLoaded(true);
+    }
   }, [handleError]);
 
-  const currentProject = useMemo(
-    () => projects.find((p) => p.id === currentProjectId) || null,
-    [projects, currentProjectId]
-  );
+  useEffect(() => { if (user) refreshProjects(); }, [user?.id, refreshProjects]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // -------------- PROJECT HOOK --------------
-  const proj = useProject(currentProjectId, {
-    onError: handleError,
-    onSync: setSyncState,
-  });
+  // Account views show cross-model stats; refresh them whenever we land there.
+  useEffect(() => {
+    if (user && !MODEL_VIEWS.includes(nav.view)) refreshProjects();
+  }, [nav.view]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const selectedNode = useMemo(
-    () => proj.nodes.find((n) => n.id === selectedNodeId) || null,
-    [proj.nodes, selectedNodeId]
-  );
-  const selectedEdge = useMemo(
-    () => proj.edges.find((e) => e.id === selectedEdgeId) || null,
-    [proj.edges, selectedEdgeId]
-  );
+  // -------------- ACTIVE MODEL --------------
+  const project = projects.find((p) => p.id === nav.projectId) || null;
+  const proj = useProject(project?.id ?? null, { onError: handleError, onSync: setSyncState });
+  const view = MODEL_VIEWS.includes(nav.view) && !project ? 'overview' : nav.view;
 
-  // -------------- PROJECT MANAGEMENT --------------
-  const handleNewProject = async (name) => {
-    try {
-      const p = await api.createProject({ name, description: '' });
-      setProjects((ps) => [{ ...p, node_count: 0, edge_count: 0, threat_count: 0 }, ...ps]);
-      setCurrentProjectId(p.id);
-      showToast(`Created "${name}"`);
-    } catch (e) { handleError(e); }
+  const setView = (v) => setNav((n) => ({ ...n, view: v }));
+  const openProject = (projectId, nodeId = null) => {
+    setNav({ view: nodeId ? 'diagram' : 'dashboard', projectId });
+    setSelection({ nodeId, edgeId: null });
   };
-
-  const handleDeleteProject = async (id) => {
-    try {
-      await api.deleteProject(id);
-      const remaining = projects.filter((p) => p.id !== id);
-      setProjects(remaining);
-      setCurrentProjectId(remaining[0]?.id || null);
-      setSelectedNodeId(null);
-      setSelectedEdgeId(null);
-      showToast('Project deleted');
-    } catch (e) { handleError(e); }
+  const selectNode = (nodeId) => {
+    setSelection({ nodeId, edgeId: null });
+    setView('diagram');
   };
-
-  const handleRenameProject = async (newName) => {
-    if (!currentProject) return;
-    try {
-      const updated = await api.updateProject(currentProject.id, { name: newName });
-      setProjects((ps) => ps.map((p) => p.id === updated.id ? { ...p, ...updated } : p));
-    } catch (e) { handleError(e); }
+  const exportReport = () => {
+    if (!project) return;
+    api.downloadReport(project.id, project.name.replace(/[^a-z0-9]+/gi, '_').toLowerCase())
+      .then(() => notify('Report exported'), handleError);
   };
-
-  const handleExportReport = async () => {
-    if (!currentProject) return;
-    try {
-      const md = await api.getReport(currentProject.id);
-      const blob = new Blob([md], { type: 'text/markdown' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${currentProject.name.replace(/[^a-z0-9]+/gi, '_').toLowerCase()}_report.md`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Report exported');
-    } catch (e) { handleError(e); }
+  const signOut = async () => {
+    try { await api.logout(); } catch { /* clearing local state is what matters */ }
+    signedOut();
   };
-
-  // -------------- CANVAS HANDLERS --------------
-  const onDragOver = useCallback((e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setIsDragOver(true); }, []);
-  const onDragLeave = useCallback(() => setIsDragOver(false), []);
-
-  const onDrop = useCallback(async (e) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const type = e.dataTransfer.getData('application/threatforge');
-    if (!type || !currentProjectId) return;
-    const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-    try {
-      await proj.createNode(type, position);
-      showToast(`Added ${type}`);
-    } catch (err) { /* already surfaced */ }
-  }, [currentProjectId, proj, screenToFlowPosition, showToast]);
-
-  const onNodeClick = useCallback((_, node) => { setSelectedNodeId(node.id); setSelectedEdgeId(null); }, []);
-  const onEdgeClick = useCallback((_, edge) => { setSelectedEdgeId(edge.id); setSelectedNodeId(null); }, []);
-  const onPaneClick = useCallback(() => { setSelectedNodeId(null); setSelectedEdgeId(null); }, []);
 
   // -------------- RENDER --------------
-  if (bootError && projects.length === 0) {
-    return (
-      <div className="splash">
-        <div>THREATFORGE</div>
-        <div className="splash-sub" style={{ color: 'var(--red)' }}>
-          Cannot reach API · is the server running on :4000?
-        </div>
-        <div className="splash-sub">{bootError.message}</div>
-      </div>
-    );
+  if (user === undefined) {
+    return <div className="splash"><img src="/glyph.svg" alt="" />Loading…</div>;
+  }
+  if (user === null) {
+    return <AuthScreen onAuthed={(u) => { setUser(u); setNav({ view: 'overview', projectId: null }); }} />;
   }
 
+  let body;
+  if (view === 'profile') {
+    body = <ProfileScreen user={user} projects={projects} onOpen={openProject} onUser={setUser} onProjectsChanged={refreshProjects} />;
+  } else if (!MODEL_VIEWS.includes(view)) {
+    body = projectsLoaded
+      ? <OverviewScreen user={user} projects={projects} attention={attention} onOpen={openProject} onFiles={() => setView('profile')} />
+      : <div className="splash">Loading models…</div>;
+  } else if (view === 'dashboard') {
+    body = <DashboardScreen project={project} proj={proj} onNavigate={setView} onSelectNode={selectNode} onExportReport={exportReport} />;
+  } else if (view === 'diagram') {
+    body = <DiagramScreen project={project} proj={proj} selection={selection} setSelection={setSelection} notify={notify} />;
+  } else if (view === 'threats') {
+    body = <ThreatsScreen project={project} proj={proj} onSelectNode={selectNode} />;
+  } else if (view === 'assets') {
+    body = <AssetsScreen proj={proj} onNavigate={setView} onSelectNode={selectNode} />;
+  } else {
+    body = <ReportsScreen key={project.id} project={project} onExportReport={exportReport} />;
+  }
+
+  const inModel = MODEL_VIEWS.includes(view);
   return (
     <div className="app">
       <TopBar
+        user={user}
+        project={inModel ? project : null}
         syncState={syncState}
-        projects={projects}
-        currentProject={currentProject}
-        onSelectProject={(id) => { setCurrentProjectId(id); setSelectedNodeId(null); setSelectedEdgeId(null); }}
-        onNewProject={handleNewProject}
-        onDeleteProject={handleDeleteProject}
-        onRenameProject={handleRenameProject}
-        onExportReport={handleExportReport}
+        onHome={() => setView('overview')}
+        onProfile={() => setView('profile')}
+        onSignOut={signOut}
       />
-
-      <div className="main">
-        <Sidebar />
-
-        <div
-          className={`canvas-wrap ${isDragOver ? 'is-dragover' : ''}`}
-          ref={rfWrapperRef}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-        >
-          {currentProject ? (
-            <>
-              <div className="canvas-overlay">
-                <span>Canvas · <strong>{proj.stats.elements}</strong> elements</span>
-                <span>·</span>
-                <span><strong>{proj.stats.flows}</strong> flows</span>
-                <span>·</span>
-                <span><strong>{proj.stats.open}</strong> open threats</span>
-              </div>
-              <div className="scan-overlay" />
-              <ReactFlow
-                nodes={proj.nodes}
-                edges={proj.edges}
-                onNodesChange={proj.onNodesChange}
-                onEdgesChange={proj.onEdgesChange}
-                onConnect={proj.onConnect}
-                onBeforeDelete={proj.onBeforeDelete}
-                onNodeClick={onNodeClick}
-                onEdgeClick={onEdgeClick}
-                onPaneClick={onPaneClick}
-                nodeTypes={nodeTypes}
-                fitView
-                fitViewOptions={{ padding: 0.2 }}
-                defaultEdgeOptions={{
-                  type: 'smoothstep',
-                  markerEnd: { type: MarkerType.ArrowClosed, color: '#7c8590' },
-                }}
-                proOptions={{ hideAttribution: true }}
-              >
-                <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#1e2632" />
-                <Controls showInteractive={false} />
-                <MiniMap
-                  nodeColor={(n) => ({
-                    external: '#ffb454', process: '#59c2ff', datastore: '#aad94c', boundary: '#d2a6ff',
-                  })[n.type] || '#7c8590'}
-                  maskColor="rgba(7, 9, 13, 0.7)"
-                  pannable zoomable
-                />
-              </ReactFlow>
-            </>
-          ) : (
-            <div className="inspector-empty" style={{ height: '100%' }}>
-              <div className="inspector-empty-mark">[ ◆ ]</div>
-              <div className="inspector-empty-text">
-                No project selected.<br />Create one in the top bar.
-              </div>
-            </div>
-          )}
-        </div>
-
-        <Inspector
-          selectedNode={selectedNode}
-          selectedEdge={selectedEdge}
-          onNodePatch={proj.patchNode}
-          onNodeDelete={async (id) => { await proj.deleteNode(id); setSelectedNodeId(null); }}
-          onEdgePatch={proj.patchEdge}
-          onEdgeDelete={async (id) => { await proj.deleteEdge(id); setSelectedEdgeId(null); }}
-          onThreatCreate={proj.createThreat}
-          onThreatPatch={proj.patchThreat}
-          onThreatDelete={proj.deleteThreat}
+      <div className="app__main">
+        <Sidebar
+          view={view}
+          setView={setView}
+          project={project}
+          projectCount={projects.length}
+          stats={project ? { threats: proj.stats.threats, elements: proj.stats.elements } : null}
         />
+        <main className="app__content">{body}</main>
       </div>
-
-      <StatusBar stats={proj.stats} />
-
       {toast && (
-        <div className={`toast ${toast.isError ? 'is-error' : ''}`}>{toast.message}</div>
+        <div className={`toast ${toast.isError ? 'is-error' : ''}`} role="status">
+          {toast.isError ? <TriangleAlert size={14} /> : <Check size={14} />}
+          {toast.message}
+        </div>
       )}
     </div>
   );

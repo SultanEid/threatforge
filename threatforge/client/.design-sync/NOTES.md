@@ -8,15 +8,16 @@
 - Props are hand-written in `dtsPropsFor` because the source is untyped JSX (`[DTS_REACT]` warning about @types/react is expected and harmless here).
 - `ThreatCard` and `StrideGrid` were extracted from `src/components/Inspector.jsx` for this sync; the Inspector now renders them.
 - Node components need a React Flow canvas: previews render a real `<ReactFlow nodeTypes={nodeTypes}>` in a fixed-size div. Import React Flow from `@threatforge/client` in previews (not `@xyflow/react`) so there's a single store instance.
-- Fonts: the app loads JetBrains Mono + Major Mono Display from Google Fonts via `<link>` in index.html. Latin + latin-ext woff2 files (OFL) were downloaded into `.design-sync/fonts/` and wired with `extraFonts`.
+- Fonts: the app loads IBM Plex Sans + JetBrains Mono (SERG design system) from Google Fonts via `<link>` in index.html. Latin + latin-ext variable woff2 files (OFL) are snapshotted in `.design-sync/fonts/` and wired with `extraFonts`.
+- Visual style follows the "SERG Threat Modeler Design System" claude.ai/design project (tokens from its `colors_and_type.css`, layout from its `ui_kits/app`). StatusBar was removed from the app and from this sync when the app adopted that design.
 - Playwright + chromium are installed in `.ds-sync/node_modules` (gitignored), so re-copying the scripts keeps them only if `.ds-sync/node_modules` is left in place.
 
 ## Known render warns
-- `[GRID_OVERFLOW]` on StatusBar and TrustBoundaryNode: resolved with `cardMode: "column"` overrides.
-- Node headers: a long classification (`CONFIDENTIAL`) runs into the type label ("PROCESSCONFIDENTIAL"), and the threat-count pip overlaps the classification text. This is the app's real CSS (`.tm-node__head`, `.threat-pip` in `src/styles.css`), faithfully reproduced; graded good. Fix in the app CSS, not in previews.
+- `[GRID_OVERFLOW]` on TrustBoundaryNode: resolved with a `cardMode: "column"` override.
 
 ## Re-sync risks
 - `dtsPropsFor` is hand-maintained: if component props change in the JSX, these contracts go stale silently. Update them with any component API change.
 - `.design-sync/fonts/` is a snapshot of Google Fonts files; if the app changes fonts/weights in index.html, re-fetch.
 - `.prompt.md` summaries are generic ("X from @threatforge/client") because JSDoc isn't picked up in this mode; the conventions header carries the usage guidance. Per-component `.md` docs via `docsDir` would improve them.
-- `src/styles.css` mixes app-shell rules (`html, body { overflow: hidden }`, `.app`, `.topbar`) with component styles; all of it ships. Documented in conventions.md.
+- `src/styles.css` mixes app-shell rules (`.app`, `.topbar`, `.sidebar`, `.auth`) with component styles; all of it ships.
+- Re-synced 2026-10-04 with the SERG restyle. The project still holds 4 unreferenced font files from the first sync (`fonts/JetBrainsMono-latin-1.woff2`, `fonts/JetBrainsMono-latin-ext-0.woff2`, `fonts/MajorMonoDisplay-latin-3.woff2`, `fonts/MajorMonoDisplay-latin-ext-2.woff2`): the anchor diff only tracks component paths, so font renames never produce deletes. Remove them by naming them in a plan's `deletes` on a future sync.

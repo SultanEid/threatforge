@@ -10,8 +10,7 @@
     "DataStoreNode": "src/components/nodes/DataStoreNode.jsx",
     "TrustBoundaryNode": "src/components/nodes/TrustBoundaryNode.jsx",
     "ThreatCard": "src/components/ThreatCard.jsx",
-    "StrideGrid": "src/components/StrideGrid.jsx",
-    "StatusBar": "src/components/StatusBar.jsx"
+    "StrideGrid": "src/components/StrideGrid.jsx"
   },
   "extraFonts": [
     ".design-sync/fonts/fonts.css"
@@ -20,15 +19,11 @@
     "ExternalEntityNode": "/** React Flow node data. */ data: { label?: string; classification?: 'Public' | 'Internal' | 'Confidential' | 'Secret'; technology?: string; description?: string; threats?: Array<{ id: string; stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; severity: 'Critical' | 'High' | 'Medium' | 'Low'; description: string; control?: string | null; mitigation: 'Open' | 'Mitigated' | 'Accepted' }> }; /** Set by React Flow when the node is selected. */ selected?: boolean;",
     "ProcessNode": "/** React Flow node data. */ data: { label?: string; classification?: 'Public' | 'Internal' | 'Confidential' | 'Secret'; technology?: string; description?: string; threats?: Array<{ id: string; stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; severity: 'Critical' | 'High' | 'Medium' | 'Low'; description: string; control?: string | null; mitigation: 'Open' | 'Mitigated' | 'Accepted' }> }; /** Set by React Flow when the node is selected. */ selected?: boolean;",
     "DataStoreNode": "/** React Flow node data. */ data: { label?: string; classification?: 'Public' | 'Internal' | 'Confidential' | 'Secret'; technology?: string; description?: string; threats?: Array<{ id: string; stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; severity: 'Critical' | 'High' | 'Medium' | 'Low'; description: string; control?: string | null; mitigation: 'Open' | 'Mitigated' | 'Accepted' }> }; /** Set by React Flow when the node is selected. */ selected?: boolean;",
-    "TrustBoundaryNode": "/** React Flow node data. */ data: { label?: string; zone?: 'UNTRUSTED' | 'SEMI-TRUSTED' | 'TRUSTED' | 'RESTRICTED'; width?: number; height?: number }; /** Set by React Flow when the node is selected. */ selected?: boolean;",
-    "ThreatCard": "threat: { id: string; stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; severity: 'Critical' | 'High' | 'Medium' | 'Low'; description: string; control?: string | null; mitigation: 'Open' | 'Mitigated' | 'Accepted' }; /** Shows a Mark Mitigated / Reopen button when set. */ onToggleMitigation?: (id: string, next: 'Open' | 'Mitigated') => void; /** Shows a delete (x) button when set. */ onDelete?: (id: string) => void;",
-    "StrideGrid": "/** Threats to tally per STRIDE letter; only stride + mitigation are read. */ threats?: Array<{ stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; mitigation: 'Open' | 'Mitigated' | 'Accepted' }>;",
-    "StatusBar": "stats: { elements: number; boundaries: number; flows: number; threats: number; open: number; critical: number; high: number; medium: number; low: number };"
+    "TrustBoundaryNode": "/** React Flow node data. Size comes from the React Flow node's own width/height. */ data: { label?: string; zone?: 'UNTRUSTED' | 'SEMI-TRUSTED' | 'TRUSTED' | 'RESTRICTED' }; /** Set by React Flow when the node is selected; shows resize handles. */ selected?: boolean;",
+    "ThreatCard": "threat: { id: string; stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; severity: 'Critical' | 'High' | 'Medium' | 'Low'; description: string; control?: string | null; mitigation: 'Open' | 'Mitigated' | 'Accepted' }; /** Shows an Open/Mitigated/Accepted status select when set (otherwise a read-only status dot). */ onStatusChange?: (id: string, status: 'Open' | 'Mitigated' | 'Accepted') => void; /** Shows a delete (trash) button when set. */ onDelete?: (id: string) => void;",
+    "StrideGrid": "/** Threats to tally per STRIDE letter; only stride + mitigation are read. */ threats?: Array<{ stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; mitigation: 'Open' | 'Mitigated' | 'Accepted' }>;"
   },
   "overrides": {
-    "StatusBar": {
-      "cardMode": "column"
-    },
     "TrustBoundaryNode": {
       "cardMode": "column"
     }

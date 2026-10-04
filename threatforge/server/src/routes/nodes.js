@@ -2,14 +2,14 @@ import { Router } from 'express';
 import { db } from '../db/index.js';
 import { idFor } from '../lib/uid.js';
 import { ah, HttpError } from '../middleware/error.js';
+import { ownedProject, ownedNode, touchProject } from '../lib/access.js';
 
 const r = Router();
 
 // POST /api/projects/:projectId/nodes
 r.post('/projects/:projectId/nodes', ah(async (req, res) => {
   const { projectId } = req.params;
-  const project = db.prepare('SELECT id FROM projects WHERE id = ?').get(projectId);
-  if (!project) throw new HttpError(404, 'Project not found');
+  ownedProject(projectId, req.user.id);
 
   const {
     type, position_x = 0, position_y = 0,
@@ -34,8 +34,7 @@ r.post('/projects/:projectId/nodes', ah(async (req, res) => {
 
 // PUT /api/nodes/:id
 r.put('/nodes/:id', ah(async (req, res) => {
-  const existing = db.prepare('SELECT * FROM nodes WHERE id = ?').get(req.params.id);
-  if (!existing) throw new HttpError(404, 'Node not found');
+  const existing = ownedNode(req.params.id, req.user.id);
 
   const fields = ['position_x', 'position_y', 'label', 'classification', 'technology', 'description', 'zone', 'width', 'height', 'z_index'];
   const updates = [];
@@ -61,15 +60,10 @@ r.put('/nodes/:id', ah(async (req, res) => {
 
 // DELETE /api/nodes/:id
 r.delete('/nodes/:id', ah(async (req, res) => {
-  const node = db.prepare('SELECT project_id FROM nodes WHERE id = ?').get(req.params.id);
-  if (!node) throw new HttpError(404, 'Node not found');
+  const node = ownedNode(req.params.id, req.user.id);
   db.prepare('DELETE FROM nodes WHERE id = ?').run(req.params.id);
   touchProject(node.project_id);
   res.status(204).end();
 }));
-
-function touchProject(projectId) {
-  db.prepare(`UPDATE projects SET updated_at = datetime('now') WHERE id = ?`).run(projectId);
-}
 
 export default r;

@@ -1,9 +1,25 @@
 import { db, runSchema } from './index.js';
 import { idFor } from '../lib/uid.js';
+import { hashPassword } from '../lib/auth.js';
 
 runSchema();
 
-const existing = db.prepare("SELECT id FROM projects WHERE name = ?").get('E-Commerce Platform v1.0');
+// Demo account. Override the password with SEED_PASSWORD for shared installs.
+const DEMO_EMAIL = 'demo@threatforge.local';
+const DEMO_PASSWORD = process.env.SEED_PASSWORD || 'threatmodel';
+let demo = db.prepare('SELECT id FROM users WHERE email = ?').get(DEMO_EMAIL);
+if (!demo) {
+  demo = { id: idFor('usr') };
+  db.prepare('INSERT INTO users (id, email, name, affiliation, password_hash) VALUES (?, ?, ?, ?, ?)')
+    .run(demo.id, DEMO_EMAIL, 'Demo Analyst', 'ThreatForge', hashPassword(DEMO_PASSWORD));
+  console.log(`[seed] Demo account created → ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
+}
+
+// Projects created before accounts existed have no owner; give them to the demo user.
+const adopted = db.prepare('UPDATE projects SET user_id = ? WHERE user_id IS NULL').run(demo.id);
+if (adopted.changes) console.log(`[seed] Assigned ${adopted.changes} ownerless project(s) to ${DEMO_EMAIL}`);
+
+const existing = db.prepare("SELECT id FROM projects WHERE name = ? AND user_id = ?").get('E-Commerce Platform v1.0', demo.id);
 if (existing) {
   console.log('[seed] Example project already exists →', existing.id);
   process.exit(0);
@@ -11,8 +27,8 @@ if (existing) {
 
 const projectId = idFor('proj');
 const tx = db.transaction(() => {
-  db.prepare(`INSERT INTO projects (id, name, description) VALUES (?, ?, ?)`)
-    .run(projectId, 'E-Commerce Platform v1.0', 'Reference example: customer → API gateway → service → DB.');
+  db.prepare(`INSERT INTO projects (id, user_id, name, description) VALUES (?, ?, ?, ?)`)
+    .run(projectId, demo.id, 'E-Commerce Platform v1.0', 'Reference example: customer → API gateway → service → DB.');
 
   const nodes = [
     {
