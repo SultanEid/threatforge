@@ -1,5 +1,8 @@
 import React from 'react';
 
+/**
+ * Dashed trust-boundary zone drawn behind other nodes on a React Flow canvas; data = {label, zone, width, height}. Give it zIndex -1.
+ */
 export default function TrustBoundaryNode({ data, selected }) {
   return (
     <div

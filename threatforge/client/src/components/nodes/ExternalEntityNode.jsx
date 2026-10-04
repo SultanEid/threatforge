@@ -3,6 +3,9 @@ import { Handle, Position } from '@xyflow/react';
 import NodeShell from './NodeShell.jsx';
 import { classifyColor } from '../../lib/constants.js';
 
+/**
+ * DFD external entity (user, partner, outside system) for a React Flow canvas. Register via nodeTypes and render inside <ReactFlow>; data = {label, classification, technology, threats}.
+ */
 export default function ExternalEntityNode({ data, selected }) {
   return (
     <NodeShell kind="external" data={data} selected={selected}>

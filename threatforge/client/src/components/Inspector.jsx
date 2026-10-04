@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { STRIDE, STRIDE_BY_KEY, CLASSIFICATIONS, SEVERITIES, AUTH_METHODS } from '../lib/constants.js';
+import { STRIDE, CLASSIFICATIONS, SEVERITIES, AUTH_METHODS } from '../lib/constants.js';
+import ThreatCard from './ThreatCard.jsx';
+import StrideGrid from './StrideGrid.jsx';
 
 export default function Inspector({
   selectedNode, selectedEdge,
@@ -29,6 +31,7 @@ export default function Inspector({
           <div className="field">
             <div className="field-label">Label / Protocol</div>
             <input
+              key={selectedEdge.id + ':label'}
               defaultValue={selectedEdge.label || ''}
               onBlur={(e) => onEdgePatch(selectedEdge.id, { label: e.target.value })}
               placeholder="e.g. HTTPS · gRPC · SQL"
@@ -37,6 +40,7 @@ export default function Inspector({
           <div className="field">
             <div className="field-label">Data Carried</div>
             <input
+              key={selectedEdge.id + ':payload'}
               defaultValue={d.payload || ''}
               onBlur={(e) => onEdgePatch(selectedEdge.id, { payload: e.target.value })}
               placeholder="e.g. PII, JWT, order data"
@@ -45,7 +49,7 @@ export default function Inspector({
           <div className="field">
             <div className="field-label">Authentication</div>
             <select
-              defaultValue={d.auth || 'None'}
+              value={d.auth || 'None'}
               onChange={(e) => onEdgePatch(selectedEdge.id, { auth: e.target.value })}
             >
               {AUTH_METHODS.map((a) => <option key={a}>{a}</option>)}
@@ -77,15 +81,6 @@ export default function Inspector({
   const data = selectedNode.data || {};
   const threats = data.threats || [];
   const isBoundary = selectedNode.type === 'boundary';
-
-  const strideCounts = STRIDE.reduce((acc, s) => {
-    const list = threats.filter((t) => t.stride === s.key);
-    acc[s.key] = {
-      total: list.length,
-      open: list.filter((t) => t.mitigation !== 'Mitigated').length,
-    };
-    return acc;
-  }, {});
 
   const addThreat = () => {
     if (!draft.description.trim()) return;
@@ -165,22 +160,7 @@ export default function Inspector({
         <>
           <div className="field-group">
             <div className="field-label">STRIDE Coverage Matrix</div>
-            <div className="stride-grid">
-              {STRIDE.map((s) => {
-                const c = strideCounts[s.key];
-                const cls = c.open > 0 ? 'has-threats' : c.total > 0 ? 'all-mitigated' : '';
-                return (
-                  <div
-                    key={s.key}
-                    className={`stride-cell ${cls}`}
-                    title={`${s.name} — ${s.desc}\n${c.total} threat(s), ${c.open} open`}
-                  >
-                    <div className="stride-letter" style={{ color: s.color }}>{s.key}</div>
-                    {c.total > 0 && <div className="stride-count">{c.open}/{c.total}</div>}
-                  </div>
-                );
-              })}
-            </div>
+            <StrideGrid threats={threats} />
           </div>
 
           <div className="field-group">
@@ -225,32 +205,14 @@ export default function Inspector({
                   NO THREATS DOCUMENTED
                 </div>
               )}
-              {threats.map((t) => {
-                const isMit = t.mitigation === 'Mitigated';
-                return (
-                  <div key={t.id} className={`threat-card sev-${String(t.severity).toLowerCase()} ${isMit ? 'is-mitigated' : ''}`}>
-                    <div className="threat-head">
-                      <div className="threat-head-tags">
-                        <span className="threat-stride">{t.stride} · {STRIDE_BY_KEY[t.stride]?.name}</span>
-                        <span className={`threat-sev sev-${String(t.severity).toLowerCase()}`}>{t.severity}</span>
-                        {isMit && <span className="threat-mit">✓ Mitigated</span>}
-                      </div>
-                      <button className="icon-btn" onClick={() => onThreatDelete(t.id)} title="Delete">×</button>
-                    </div>
-                    <div className="threat-desc">{t.description}</div>
-                    {t.control && (
-                      <div className="threat-desc" style={{ color: 'var(--text-tertiary)', marginTop: 4, fontSize: 10 }}>
-                        ↳ {t.control}
-                      </div>
-                    )}
-                    <div className="threat-actions">
-                      <button onClick={() => onThreatPatch(t.id, { mitigation: isMit ? 'Open' : 'Mitigated' })}>
-                        {isMit ? 'Reopen' : 'Mark Mitigated'}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+              {threats.map((t) => (
+                <ThreatCard
+                  key={t.id}
+                  threat={t}
+                  onDelete={onThreatDelete}
+                  onToggleMitigation={(id, mitigation) => onThreatPatch(id, { mitigation })}
+                />
+              ))}
             </div>
           </div>
         </>

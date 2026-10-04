@@ -197,6 +197,7 @@ export default function App() {
                 onNodesChange={proj.onNodesChange}
                 onEdgesChange={proj.onEdgesChange}
                 onConnect={proj.onConnect}
+                onBeforeDelete={proj.onBeforeDelete}
                 onNodeClick={onNodeClick}
                 onEdgeClick={onEdgeClick}
                 onPaneClick={onPaneClick}
