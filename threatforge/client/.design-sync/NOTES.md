@@ -20,4 +20,4 @@
 - `.design-sync/fonts/` is a snapshot of Google Fonts files; if the app changes fonts/weights in index.html, re-fetch.
 - `.prompt.md` summaries are generic ("X from @threatforge/client") because JSDoc isn't picked up in this mode; the conventions header carries the usage guidance. Per-component `.md` docs via `docsDir` would improve them.
 - `src/styles.css` mixes app-shell rules (`.app`, `.topbar`, `.sidebar`, `.auth`) with component styles; all of it ships.
-- The uploaded "ThreatForge Design System" project predates the SERG restyle until the next re-sync.
+- Re-synced 2026-10-04 with the SERG restyle. The project still holds 4 unreferenced font files from the first sync (`fonts/JetBrainsMono-latin-1.woff2`, `fonts/JetBrainsMono-latin-ext-0.woff2`, `fonts/MajorMonoDisplay-latin-3.woff2`, `fonts/MajorMonoDisplay-latin-ext-2.woff2`): the anchor diff only tracks component paths, so font renames never produce deletes. Remove them by naming them in a plan's `deletes` on a future sync.
