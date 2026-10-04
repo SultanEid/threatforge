@@ -6,7 +6,7 @@ const threat = (id: string, stride: string, severity: string, description: strin
 
 function Canvas({ data }: { data: any }) {
   return (
-    <div style={{ width: 300, height: 150, background: 'var(--bg-deep)' }}>
+    <div style={{ width: 300, height: 150, background: 'var(--bg-inset)' }}>
       <ReactFlowProvider>
         <ReactFlow
           nodes={[{ id: 'n1', type: 'process', position: { x: 0, y: 0 }, data }]}

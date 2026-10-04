@@ -1,38 +1,41 @@
 import React from 'react';
-import { STRIDE_BY_KEY } from '../lib/constants.js';
+import { Trash2 } from 'lucide-react';
+import { StridePill, SeverityBadge, StatusDot, IconButton } from './ui.jsx';
+import { MITIGATIONS } from '../lib/constants.js';
 
 /**
- * A single documented threat: STRIDE category, severity, description,
- * proposed control, and a mitigation toggle. Severity drives the left accent
- * color; mitigated threats render dimmed with a check tag.
+ * A single documented threat: STRIDE pill, severity badge, description,
+ * proposed control and status. Pass onStatusChange to make the status
+ * editable and onDelete to show a delete button; mitigated threats dim.
  */
-export default function ThreatCard({ threat, onToggleMitigation, onDelete }) {
+export default function ThreatCard({ threat, onStatusChange, onDelete }) {
   const t = threat;
-  const isMit = t.mitigation === 'Mitigated';
-  const sev = String(t.severity).toLowerCase();
   return (
-    <div className={`threat-card sev-${sev} ${isMit ? 'is-mitigated' : ''}`}>
-      <div className="threat-head">
-        <div className="threat-head-tags">
-          <span className="threat-stride">{t.stride} · {STRIDE_BY_KEY[t.stride]?.name}</span>
-          <span className={`threat-sev sev-${sev}`}>{t.severity}</span>
-          {isMit && <span className="threat-mit">✓ Mitigated</span>}
-        </div>
-        {onDelete && <button className="icon-btn" onClick={() => onDelete(t.id)} title="Delete">×</button>}
+    <div className={`threat-card ${t.mitigation === 'Mitigated' ? 'is-mitigated' : ''}`}>
+      <div className="threat-card__head">
+        <span className="threat-card__tags">
+          <StridePill letter={t.stride} />
+          <SeverityBadge level={t.severity} />
+        </span>
+        {onDelete && <IconButton icon={Trash2} title="Delete threat" danger onClick={() => onDelete(t.id)} />}
       </div>
-      <div className="threat-desc">{t.description}</div>
-      {t.control && (
-        <div className="threat-desc" style={{ color: 'var(--text-tertiary)', marginTop: 4, fontSize: 10 }}>
-          ↳ {t.control}
-        </div>
-      )}
-      {onToggleMitigation && (
-        <div className="threat-actions">
-          <button onClick={() => onToggleMitigation(t.id, isMit ? 'Open' : 'Mitigated')}>
-            {isMit ? 'Reopen' : 'Mark Mitigated'}
-          </button>
-        </div>
-      )}
+      <div className="threat-card__title">{t.description}</div>
+      {t.control && <div className="threat-card__control">{t.control}</div>}
+      <div className="threat-card__actions">
+        {onStatusChange ? (
+          <select
+            className="select select--sm"
+            style={{ width: 'auto' }}
+            value={t.mitigation}
+            onChange={(e) => onStatusChange(t.id, e.target.value)}
+            aria-label="Threat status"
+          >
+            {MITIGATIONS.map((m) => <option key={m}>{m}</option>)}
+          </select>
+        ) : (
+          <StatusDot status={t.mitigation} />
+        )}
+      </div>
     </div>
   );
 }

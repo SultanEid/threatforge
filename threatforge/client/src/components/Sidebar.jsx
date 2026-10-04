@@ -1,63 +1,45 @@
 import React from 'react';
-import { PALETTE, STRIDE } from '../lib/constants.js';
+import { LayoutGrid, FolderOpen, LayoutDashboard, Workflow, ListChecks, Boxes, FileText } from 'lucide-react';
+import { Label, timeAgo } from './ui.jsx';
 
-export default function Sidebar() {
-  const onDragStart = (e, type) => {
-    e.dataTransfer.setData('application/threatforge', type);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
+function SideGroup({ title, items, view, setView }) {
   return (
-    <div className="sidebar">
-      <div className="panel-section">
-        <div className="panel-header">Elements</div>
-        {PALETTE.map((p) => (
-          <div
-            key={p.type}
-            className={p.cls}
-            draggable
-            onDragStart={(e) => onDragStart(e, p.type)}
-          >
-            <div className="palette-name">{p.name}</div>
-            <div className="palette-desc">{p.desc}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="panel-section">
-        <div className="panel-header">Legend</div>
-        <div className="legend">
-          <div className="legend-row"><span className="legend-dot" style={{ background: 'var(--accent)' }} /> External Entity</div>
-          <div className="legend-row"><span className="legend-dot" style={{ background: 'var(--cool)' }} /> Process</div>
-          <div className="legend-row"><span className="legend-dot" style={{ background: 'var(--green)' }} /> Data Store</div>
-          <div className="legend-row"><span className="legend-dot" style={{ background: 'var(--purple)' }} /> Trust Boundary</div>
-          <div style={{ height: 6 }} />
-          <div className="legend-row"><span className="legend-dot" style={{ background: 'var(--red)' }} /> Open Threat</div>
-          <div className="legend-row"><span className="legend-dot" style={{ background: 'var(--green)' }} /> Mitigated</div>
-        </div>
-      </div>
-
-      <div className="panel-section">
-        <div className="panel-header">STRIDE Key</div>
-        <div className="legend">
-          {STRIDE.map((s) => (
-            <div key={s.key} className="legend-row" style={{ marginBottom: 2 }}>
-              <span style={{ color: s.color, fontWeight: 700, width: 14 }}>{s.key}</span>
-              <span>{s.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="panel-section">
-        <div className="panel-header">Tips</div>
-        <div className="legend">
-          → Drag elements onto the canvas<br />
-          → Connect handles to add flows<br />
-          → Click any element to inspect<br />
-          → All changes auto-save
-        </div>
-      </div>
+    <div className="side-group">
+      <Label>{title}</Label>
+      {items.map(({ id, icon: Icon, label, count }) => (
+        <button key={id} className={`side-item ${view === id ? 'is-active' : ''}`} onClick={() => setView(id)}>
+          <Icon size={15} />
+          <span className="side-item__label">{label}</span>
+          {count != null && <span className="side-item__count">{count}</span>}
+        </button>
+      ))}
     </div>
+  );
+}
+
+export default function Sidebar({ view, setView, project, projectCount, stats }) {
+  const account = [
+    { id: 'overview', icon: LayoutGrid, label: 'All models', count: projectCount },
+    { id: 'profile', icon: FolderOpen, label: 'Profile & files' },
+  ];
+  const model = [
+    { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { id: 'diagram', icon: Workflow, label: 'Diagram' },
+    { id: 'threats', icon: ListChecks, label: 'Threats', count: stats?.threats },
+    { id: 'assets', icon: Boxes, label: 'Assets', count: stats?.elements },
+    { id: 'reports', icon: FileText, label: 'Reports' },
+  ];
+  return (
+    <nav className="sidebar">
+      <SideGroup title="Account" items={account} view={view} setView={setView} />
+      {project && <SideGroup title={`Model · ${project.name}`} items={model} view={view} setView={setView} />}
+      {project && stats && (
+        <div className="side-foot">
+          <div className="side-foot__title">› model</div>
+          <div>{stats.threats} threats · {stats.elements} elements</div>
+          <div className="side-foot__dim">updated {timeAgo(project.updated_at)}</div>
+        </div>
+      )}
+    </nav>
   );
 }

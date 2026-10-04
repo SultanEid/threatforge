@@ -11,8 +11,9 @@ threatforge/
 └── package.json     # npm workspaces root
 ```
 
-- **Frontend** consumes a REST API and auto-saves all changes (node moves debounced, edits immediate).
+- **Frontend** consumes a REST API and auto-saves all changes (node moves debounced, edits immediate). Styled with the SERG Threat Modeler design system (IBM Plex Sans + JetBrains Mono, mint accent).
 - **Backend** exposes a CRUD API for projects, nodes, edges and threats; persists to a single SQLite file at `server/data/threatforge.db`.
+- **Accounts** — every project belongs to a user. Passwords are hashed with scrypt; sessions are random tokens in an `HttpOnly`, `SameSite=Lax` cookie (only a SHA-256 of the token is stored). Failed sign-ins are throttled per IP + email.
 - **Dev proxy**: Vite proxies `/api/*` to the backend, so the frontend just calls relative URLs.
 
 ## Prerequisites
@@ -44,7 +45,9 @@ This boots both processes side-by-side:
 - API:    http://localhost:4000
 - Client: http://localhost:5173
 
-Open the client URL in your browser — you should see the seeded example project.
+Open the client URL and sign in with the seeded demo account — **`demo@threatforge.local` / `threatmodel`** — or create your own account. (Set `SEED_PASSWORD` before `db:seed` to choose a different demo password.)
+
+> **Upgrading an existing database:** projects created before accounts existed have no owner and are hidden. Run `npm run db:seed` once — it creates the demo account and assigns any ownerless projects to it.
 
 ## Run pieces individually
 
@@ -57,16 +60,24 @@ npm run dev:client    # just the frontend
 
 ```bash
 npm run build         # builds the client into client/dist
-npm run start         # runs the API; can serve client/dist as static
+NODE_ENV=production npm run start   # runs the API and serves client/dist (cookies marked Secure → serve over HTTPS)
 ```
 
 ## API surface
 
-All routes are JSON.
+All routes are JSON. Everything except `/api/health` and `/api/auth/*` requires a signed-in session; other users' resources return 404.
 
 | Method | Path                                    | Purpose                                |
 |--------|-----------------------------------------|----------------------------------------|
-| GET    | `/api/projects`                         | List all projects                      |
+| POST   | `/api/auth/signup`                      | Create account (starts a session)      |
+| POST   | `/api/auth/login`                       | Sign in                                |
+| POST   | `/api/auth/logout`                      | Sign out                               |
+| GET    | `/api/auth/me`                          | Current user                           |
+| PUT    | `/api/auth/me`                          | Update profile (name, affiliation)     |
+| GET    | `/api/projects`                         | List your projects with threat stats   |
+| GET    | `/api/projects/attention`               | Highest-severity open threats          |
+| POST   | `/api/projects/import`                  | Import a `.stm.json` model file        |
+| GET    | `/api/projects/:id/export`              | Download a `.stm.json` model file      |
 | POST   | `/api/projects`                         | Create project                         |
 | GET    | `/api/projects/:id`                     | Full project (nodes, edges, threats)   |
 | PUT    | `/api/projects/:id`                     | Update project metadata                |
@@ -86,8 +97,9 @@ All routes are JSON.
 ## Data model
 
 ```
-projects (1) ─── (many) nodes (1) ─── (many) threats
-       └─────── (many) edges ────────┘
+users (1) ─── (many) sessions
+  └── (many) projects (1) ─── (many) nodes (1) ─── (many) threats
+                   └─────── (many) edges ────────┘
 ```
 
 See `server/src/db/schema.sql` for full DDL with constraints and cascade rules.

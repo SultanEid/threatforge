@@ -3,7 +3,7 @@ import { ReactFlow, ReactFlowProvider, MarkerType, nodeTypes } from '@threatforg
 
 function Canvas({ nodes, edges = [], width = 300, height = 180 }: { nodes: any[]; edges?: any[]; width?: number; height?: number }) {
   return (
-    <div style={{ width, height, background: 'var(--bg-deep)' }}>
+    <div style={{ width, height, background: 'var(--bg-inset)' }}>
       <ReactFlowProvider>
         <ReactFlow
           nodes={nodes}
@@ -22,7 +22,7 @@ function Canvas({ nodes, edges = [], width = 300, height = 180 }: { nodes: any[]
 }
 
 const boundary = (id: string, x: number, label: string, zone: string, width = 280, height = 220) =>
-  ({ id, type: 'boundary', position: { x, y: -20 }, zIndex: -1, data: { label, zone, width, height } });
+  ({ id, type: 'boundary', position: { x, y: -20 }, width, height, zIndex: -1, data: { label, zone } });
 
 export const Untrusted = () => <Canvas nodes={[boundary('b1', 0, 'Public Internet', 'UNTRUSTED')]} />;
 

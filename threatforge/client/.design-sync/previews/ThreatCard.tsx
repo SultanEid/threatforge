@@ -3,7 +3,7 @@ import { ThreatCard } from '@threatforge/client';
 
 const noop = () => {};
 const Panel = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ width: 300, padding: 12, background: 'var(--bg-surface)' }}>{children}</div>
+  <div style={{ width: 300, padding: 12, background: 'var(--bg-0)' }}>{children}</div>
 );
 
 export const CriticalOpen = () => (
@@ -12,7 +12,7 @@ export const CriticalOpen = () => (
       threat={{ id: 'thr_1', stride: 'I', severity: 'Critical', mitigation: 'Open',
         description: 'Unencrypted backups in S3 with weak ACL.',
         control: 'KMS-encrypted snapshots, bucket policy' }}
-      onToggleMitigation={noop}
+      onStatusChange={noop}
       onDelete={noop}
     />
   </Panel>
@@ -24,7 +24,7 @@ export const HighOpen = () => (
       threat={{ id: 'thr_2', stride: 'E', severity: 'High', mitigation: 'Open',
         description: 'IDOR on /orders/:id allows cross-tenant read.',
         control: 'Tenant-scoped authorization middleware' }}
-      onToggleMitigation={noop}
+      onStatusChange={noop}
       onDelete={noop}
     />
   </Panel>
@@ -36,7 +36,7 @@ export const MediumOpen = () => (
       threat={{ id: 'thr_3', stride: 'R', severity: 'Medium', mitigation: 'Open',
         description: 'Lack of structured audit log for refund actions.',
         control: 'Append-only event log with operator ID' }}
-      onToggleMitigation={noop}
+      onStatusChange={noop}
       onDelete={noop}
     />
   </Panel>
@@ -47,7 +47,7 @@ export const LowNoControl = () => (
     <ThreatCard
       threat={{ id: 'thr_4', stride: 'S', severity: 'Low', mitigation: 'Open',
         description: 'Verbose login error reveals whether an account exists.' }}
-      onToggleMitigation={noop}
+      onStatusChange={noop}
       onDelete={noop}
     />
   </Panel>
@@ -59,7 +59,7 @@ export const Mitigated = () => (
       threat={{ id: 'thr_5', stride: 'D', severity: 'Critical', mitigation: 'Mitigated',
         description: 'Volumetric DDoS exhausting upstream connections.',
         control: 'CloudFront + WAF, per-IP token bucket' }}
-      onToggleMitigation={noop}
+      onStatusChange={noop}
       onDelete={noop}
     />
   </Panel>

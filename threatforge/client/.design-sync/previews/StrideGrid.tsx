@@ -2,7 +2,7 @@ import React from 'react';
 import { StrideGrid } from '@threatforge/client';
 
 const Panel = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ width: 280, padding: 12, background: 'var(--bg-surface)' }}>{children}</div>
+  <div style={{ width: 280, padding: 12, background: 'var(--bg-0)' }}>{children}</div>
 );
 
 export const Mixed = () => (
