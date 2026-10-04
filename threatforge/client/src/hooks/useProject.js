@@ -157,6 +157,27 @@ export function useProject(projectId, { onError, onSync } = {}) {
   }, [setEdges, sync]);
 
   // ------------------------------------------------------------------------
+  // KEYBOARD DELETE (Backspace) – persist first; React Flow only removes the
+  // elements locally if the server accepted the delete.
+  // ------------------------------------------------------------------------
+  const handleBeforeDelete = useCallback(async ({ nodes: delNodes, edges: delEdges }) => {
+    const nodeIds = new Set(delNodes.map((n) => n.id));
+    // Edges attached to deleted nodes go with them via ON DELETE CASCADE;
+    // optimistic stub edges were never persisted.
+    const loneEdges = delEdges.filter((e) =>
+      !nodeIds.has(e.source) && !nodeIds.has(e.target) && !e.id.startsWith('tmp_'));
+    try {
+      await sync(() => Promise.all([
+        ...delNodes.map((n) => api.deleteNode(n.id)),
+        ...loneEdges.map((e) => api.deleteEdge(e.id)),
+      ]));
+      return true;
+    } catch {
+      return false;
+    }
+  }, [sync]);
+
+  // ------------------------------------------------------------------------
   // THREATS
   // ------------------------------------------------------------------------
   const createThreat = useCallback(async (nodeId, threat) => {
@@ -213,6 +234,7 @@ export function useProject(projectId, { onError, onSync } = {}) {
     onNodesChange: handleNodesChange,
     onEdgesChange,
     onConnect: handleConnect,
+    onBeforeDelete: handleBeforeDelete,
     createNode, patchNode, deleteNode,
     patchEdge, deleteEdge,
     createThreat, patchThreat, deleteThreat,

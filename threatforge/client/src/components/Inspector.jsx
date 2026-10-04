@@ -31,6 +31,7 @@ export default function Inspector({
           <div className="field">
             <div className="field-label">Label / Protocol</div>
             <input
+              key={selectedEdge.id + ':label'}
               defaultValue={selectedEdge.label || ''}
               onBlur={(e) => onEdgePatch(selectedEdge.id, { label: e.target.value })}
               placeholder="e.g. HTTPS · gRPC · SQL"
@@ -39,6 +40,7 @@ export default function Inspector({
           <div className="field">
             <div className="field-label">Data Carried</div>
             <input
+              key={selectedEdge.id + ':payload'}
               defaultValue={d.payload || ''}
               onBlur={(e) => onEdgePatch(selectedEdge.id, { payload: e.target.value })}
               placeholder="e.g. PII, JWT, order data"
@@ -47,7 +49,7 @@ export default function Inspector({
           <div className="field">
             <div className="field-label">Authentication</div>
             <select
-              defaultValue={d.auth || 'None'}
+              value={d.auth || 'None'}
               onChange={(e) => onEdgePatch(selectedEdge.id, { auth: e.target.value })}
             >
               {AUTH_METHODS.map((a) => <option key={a}>{a}</option>)}
