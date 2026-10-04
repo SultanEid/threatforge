@@ -3,6 +3,9 @@ import { Handle, Position } from '@xyflow/react';
 import NodeShell from './NodeShell.jsx';
 import { classifyColor } from '../../lib/constants.js';
 
+/**
+ * DFD data store node (database, cache, queue, file store) for a React Flow canvas. Register via nodeTypes and render inside <ReactFlow>; data = {label, classification, technology, threats}.
+ */
 export default function DataStoreNode({ data, selected }) {
   return (
     <NodeShell kind="datastore" data={data} selected={selected}>

@@ -1,0 +1,37 @@
+{
+  "projectId": "dd2989c1-9dea-43ba-a919-68d49be3f92c",
+  "pkg": "@threatforge/client",
+  "globalName": "ThreatForge",
+  "shape": "package",
+  "srcDir": "src",
+  "componentSrcMap": {
+    "ExternalEntityNode": "src/components/nodes/ExternalEntityNode.jsx",
+    "ProcessNode": "src/components/nodes/ProcessNode.jsx",
+    "DataStoreNode": "src/components/nodes/DataStoreNode.jsx",
+    "TrustBoundaryNode": "src/components/nodes/TrustBoundaryNode.jsx",
+    "ThreatCard": "src/components/ThreatCard.jsx",
+    "StrideGrid": "src/components/StrideGrid.jsx",
+    "StatusBar": "src/components/StatusBar.jsx"
+  },
+  "extraFonts": [
+    ".design-sync/fonts/fonts.css"
+  ],
+  "dtsPropsFor": {
+    "ExternalEntityNode": "/** React Flow node data. */ data: { label?: string; classification?: 'Public' | 'Internal' | 'Confidential' | 'Secret'; technology?: string; description?: string; threats?: Array<{ id: string; stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; severity: 'Critical' | 'High' | 'Medium' | 'Low'; description: string; control?: string | null; mitigation: 'Open' | 'Mitigated' | 'Accepted' }> }; /** Set by React Flow when the node is selected. */ selected?: boolean;",
+    "ProcessNode": "/** React Flow node data. */ data: { label?: string; classification?: 'Public' | 'Internal' | 'Confidential' | 'Secret'; technology?: string; description?: string; threats?: Array<{ id: string; stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; severity: 'Critical' | 'High' | 'Medium' | 'Low'; description: string; control?: string | null; mitigation: 'Open' | 'Mitigated' | 'Accepted' }> }; /** Set by React Flow when the node is selected. */ selected?: boolean;",
+    "DataStoreNode": "/** React Flow node data. */ data: { label?: string; classification?: 'Public' | 'Internal' | 'Confidential' | 'Secret'; technology?: string; description?: string; threats?: Array<{ id: string; stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; severity: 'Critical' | 'High' | 'Medium' | 'Low'; description: string; control?: string | null; mitigation: 'Open' | 'Mitigated' | 'Accepted' }> }; /** Set by React Flow when the node is selected. */ selected?: boolean;",
+    "TrustBoundaryNode": "/** React Flow node data. */ data: { label?: string; zone?: 'UNTRUSTED' | 'SEMI-TRUSTED' | 'TRUSTED' | 'RESTRICTED'; width?: number; height?: number }; /** Set by React Flow when the node is selected. */ selected?: boolean;",
+    "ThreatCard": "threat: { id: string; stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; severity: 'Critical' | 'High' | 'Medium' | 'Low'; description: string; control?: string | null; mitigation: 'Open' | 'Mitigated' | 'Accepted' }; /** Shows a Mark Mitigated / Reopen button when set. */ onToggleMitigation?: (id: string, next: 'Open' | 'Mitigated') => void; /** Shows a delete (x) button when set. */ onDelete?: (id: string) => void;",
+    "StrideGrid": "/** Threats to tally per STRIDE letter; only stride + mitigation are read. */ threats?: Array<{ stride: 'S' | 'T' | 'R' | 'I' | 'D' | 'E'; mitigation: 'Open' | 'Mitigated' | 'Accepted' }>;",
+    "StatusBar": "stats: { elements: number; boundaries: number; flows: number; threats: number; open: number; critical: number; high: number; medium: number; low: number };"
+  },
+  "overrides": {
+    "StatusBar": {
+      "cardMode": "column"
+    },
+    "TrustBoundaryNode": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}

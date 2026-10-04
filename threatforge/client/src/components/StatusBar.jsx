@@ -1,5 +1,8 @@
 import React from 'react';
 
+/**
+ * Bottom status strip: element/boundary/flow/threat totals plus open-threat counts by severity (critical, high, medium, low).
+ */
 export default function StatusBar({ stats }) {
   return (
     <div className="statusbar">
